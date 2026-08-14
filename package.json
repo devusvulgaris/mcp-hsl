@@ -1,0 +1,36 @@
+{
+  "name": "mcp-hsl",
+  "version": "0.1.0",
+  "description": "MCP server exposing Greater Helsinki (HSL) public-transport data from Digitransit.fi",
+  "type": "module",
+  "bin": {
+    "helsinki-transit": "./build/stdio.js"
+  },
+  "files": [
+    "build"
+  ],
+  "scripts": {
+    "build": "tsc && chmod 755 build/stdio.js",
+    "start": "node --env-file=.env build/stdio.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "greater helsinki",
+    "helsinki",
+    "hsl",
+    "digitransit",
+    "transit"
+  ],
+  "author": "Oleg Elizarov",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.0.0",
+    "graphql-request": "^7.4.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "typescript": "^7.0.2"
+  }
+}
