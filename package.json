@@ -4,14 +4,26 @@
   "description": "MCP server exposing Greater Helsinki (HSL) public-transport data from Digitransit.fi",
   "type": "module",
   "bin": {
-    "helsinki-transit": "./build/stdio.js"
+    "mcp-hsl": "./build/stdio.js"
   },
   "files": [
     "build"
   ],
+  "engines": {
+    "node": ">=20.6.0"
+  },
   "scripts": {
     "build": "tsc && chmod 755 build/stdio.js",
-    "start": "node --env-file=.env build/stdio.js"
+    "start": "node --env-file=.env build/stdio.js",
+    "prepublishOnly": "rm -rf build && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devusvulgaris/mcp-hsl.git"
+  },
+  "homepage": "https://github.com/devusvulgaris/mcp-hsl#readme",
+  "bugs": {
+    "url": "https://github.com/devusvulgaris/mcp-hsl/issues"
   },
   "keywords": [
     "mcp",
