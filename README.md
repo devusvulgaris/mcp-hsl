@@ -1,5 +1,9 @@
 # mcp-hsl
 
+[![npm version](https://img.shields.io/npm/v/mcp-hsl.svg)](https://www.npmjs.com/package/mcp-hsl)
+[![Node.js](https://img.shields.io/node/v/mcp-hsl.svg)](https://nodejs.org)
+[![License: MIT](https://img.shields.io/npm/l/mcp-hsl.svg)](./LICENSE)
+
 MCP server exposing **Greater Helsinki (HSL)** public-transport data from [Digitransit](https://digitransit.fi). Covers Helsinki, Espoo, Vantaa, Kauniainen, Kerava, Kirkkonummi, Sipoo, Siuntio, and Tuusula.
 
 Lets an LLM host (Claude Desktop, Claude Code, Cursor, etc.) answer live-transit questions like *"next tram from Kamppi to Töölö"* or *"plan a trip from Otaniemi to Kallio at 5pm"*.
@@ -23,13 +27,27 @@ r `DIGITRANSIT_SUBSCRIPTION_KEY`.
 
 The free tier has generous rate limits (see <https://digitransit.fi/en/developers/api-registration/> for current numbers). Keep the key private — treat it like a password.
 
-## Quick start (from npm)
+## Install
+
+`mcp-hsl` is a standard stdio MCP server, so any [MCP-compatible host](https://modelcontextprotocol.io/clients) can use it — Claude Desktop, Claude Code, Cursor, VS Code (GitHub Copilot), Windsurf, Zed, and so on.
+
+### Option A — CLI (fastest, if your host has one)
+
+```sh
+# Claude Code
+claude mcp add hsl-transit -e DIGITRANSIT_SUBSCRIPTION_KEY=your-key -- npx -y mcp-hsl
+```
+
+Other hosts (Cursor, VS Code) offer GUI-driven "Add MCP server" flows in their command palettes — same fields as the JSON below.
+
+### Option B — Config file
+
+Add this entry to your host's MCP config:
 
 ```json
-// Claude Desktop / Claude Code MCP config
 {
   "mcpServers": {
-    "helsinki-transit": {
+    "hsl-transit": {
       "command": "npx",
       "args": ["-y", "mcp-hsl"],
       "env": {
@@ -40,7 +58,19 @@ The free tier has generous rate limits (see <https://digitransit.fi/en/developer
 }
 ```
 
-Restart the client. The server should appear as **Connected**.
+Where to put it:
+
+| Host | Config path | Wrapper key |
+|---|---|---|
+| Claude Desktop (macOS) | `~/Library/Application Support/Claude/claude_desktop_config.json` | `mcpServers` |
+| Claude Desktop (Windows) | `%APPDATA%\Claude\claude_desktop_config.json` | `mcpServers` |
+| Claude Code | `~/.claude.json` (or use `claude mcp add`) | `mcpServers` |
+| Cursor | `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (project) | `mcpServers` |
+| VS Code (Copilot) | `.vscode/mcp.json` (project) or user settings | `servers` |
+
+> VS Code uses `"servers"` instead of `"mcpServers"` — otherwise the entry is identical.
+
+Restart the host after editing the config. The server should appear as **Connected** / **Ready**.
 
 ## Local development
 
@@ -57,7 +87,7 @@ Run against your own build:
 ```json
 {
   "mcpServers": {
-    "helsinki-transit": {
+    "hsl-transit": {
       "command": "node",
       "args": [
         "--env-file=/absolute/path/to/mcp-hsl/.env",
