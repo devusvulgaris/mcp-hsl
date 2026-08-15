@@ -15,6 +15,7 @@
   "scripts": {
     "build": "tsc && chmod 755 build/stdio.js",
     "start": "node --env-file=.env build/stdio.js",
+    "start:http": "node --env-file=.env build/http.js",
     "prepublishOnly": "rm -rf build && npm run build"
   },
   "repository": {
@@ -38,10 +39,12 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0",
+    "express": "^5.2.1",
     "graphql-request": "^7.4.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "@types/node": "^26.1.2",
     "typescript": "^7.0.2"
   }
