@@ -100,6 +100,72 @@ Run against your own build:
 
 The server exits immediately with a clear message if `DIGITRANSIT_SUBSCRIPTION_KEY` is missing.
 
+## HTTP / SSE Server & Docker (e.g. Home Assistant)
+
+For long-lived server deployments (like **Home Assistant**, remote agent hosts, or LAN services), `mcp-hsl` provides a stateful network entry point supporting both **Streamable HTTP** (recommended) and legacy **SSE** transports.
+
+### Endpoints
+
+| Endpoint | Methods | Description | Headers / Query Params |
+|---|---|---|---|
+| `/mcp` | `POST` | **Session Initialization & Requests:**<br>• Omit `mcp-session-id` to initialize a new session (returns `mcp-session-id` header).<br>• Include `mcp-session-id` for subsequent tool calls. | `mcp-session-id: <id>` (for existing sessions)<br>`Accept: application/json, text/event-stream` |
+| `/mcp` | `GET` | **Server-to-Client SSE Stream:**<br>Holds open a persistent event stream for the active session. | `mcp-session-id: <id>`<br>`Accept: text/event-stream` |
+| `/mcp` | `DELETE` | **Session Teardown:**<br>Terminates the active session and cleans up resources. | `mcp-session-id: <id>` |
+| `/sse` | `GET` | **Legacy SSE Transport:**<br>Connects to the event stream and receives endpoint discovery event. | `Accept: text/event-stream` |
+| `/messages` | `POST` | **Legacy SSE Message Endpoint:**<br>Delivers JSON-RPC requests to the SSE session. | `sessionId=<id>` (query param or header) |
+| `/healthz` | `GET` | **Health & Metrics:**<br>Returns health status and active session counts. | — |
+
+The Streamable HTTP endpoint is also mounted at the root path, so `POST`/`GET`/`DELETE` on `/`
+behave exactly like `/mcp`. Clients that assume the server lives at the root of the URL work
+without extra configuration.
+
+### Environment Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `DIGITRANSIT_SUBSCRIPTION_KEY` | *(Required)* | Free API subscription key from Digitransit |
+| `PORT` | `8000` | Port for the HTTP server to listen on |
+| `HOST` | `0.0.0.0` | Network host interface binding |
+| `MAX_SESSIONS` | `50` | Maximum number of concurrent active sessions |
+| `SESSION_IDLE_TIMEOUT_MS` | `1800000` (30m) | Idle timeout before evicting abandoned sessions without open streams |
+| `ALLOWED_ORIGINS` | localhost + private LAN | Comma-separated allowlist of browser origins (DNS-rebinding protection) |
+
+`ALLOWED_ORIGINS` accepts either full origins or bare hostnames — `https://ha.example.com`,
+`ha.example.com` and `ha.example.com:8123` are equivalent, and the port is never significant.
+Localhost origins stay allowed whatever you configure, so local tooling such as MCP Inspector
+keeps working. Set `ALLOWED_ORIGINS=*` to disable the check entirely.
+
+Left unset, the default also accepts origins on the local network — `.local` / `.home` / `.lan`
+hostnames and RFC 1918 addresses — so a Home Assistant instance on the same LAN connects without
+configuration. Set `ALLOWED_ORIGINS` explicitly to replace that default with a strict allowlist.
+
+Requests without an `Origin` header are always allowed: the header is a browser mechanism, and
+non-browser MCP clients (Home Assistant's included) never send one.
+
+### Running locally with Node
+
+```sh
+npm run build
+npm run start:http
+```
+
+### Running with Docker
+
+Build and run the container:
+
+```sh
+docker build -t mcp-hsl .
+docker run -d -p 8000:8000 \
+  -e DIGITRANSIT_SUBSCRIPTION_KEY="your-key-here" \
+  --name mcp-hsl mcp-hsl
+```
+
+### Home Assistant Integration
+
+In Home Assistant's MCP configuration:
+- For **Streamable HTTP (Recommended)**: set URL to `http://<server-ip>:8000/mcp`
+- For **SSE (Legacy)**: set URL to `http://<server-ip>:8000/sse`
+
 ## Tools
 
 | Name | Purpose | Key inputs |
