@@ -128,12 +128,16 @@ without extra configuration.
 | `HOST` | `0.0.0.0` | Network host interface binding |
 | `MAX_SESSIONS` | `50` | Maximum number of concurrent active sessions |
 | `SESSION_IDLE_TIMEOUT_MS` | `1800000` (30m) | Idle timeout before evicting abandoned sessions without open streams |
-| `ALLOWED_ORIGINS` | localhost only | Comma-separated allowlist of browser origins (DNS-rebinding protection) |
+| `ALLOWED_ORIGINS` | localhost + private LAN | Comma-separated allowlist of browser origins (DNS-rebinding protection) |
 
 `ALLOWED_ORIGINS` accepts either full origins or bare hostnames — `https://ha.example.com`,
 `ha.example.com` and `ha.example.com:8123` are equivalent, and the port is never significant.
 Localhost origins stay allowed whatever you configure, so local tooling such as MCP Inspector
 keeps working. Set `ALLOWED_ORIGINS=*` to disable the check entirely.
+
+Left unset, the default also accepts origins on the local network — `.local` / `.home` / `.lan`
+hostnames and RFC 1918 addresses — so a Home Assistant instance on the same LAN connects without
+configuration. Set `ALLOWED_ORIGINS` explicitly to replace that default with a strict allowlist.
 
 Requests without an `Origin` header are always allowed: the header is a browser mechanism, and
 non-browser MCP clients (Home Assistant's included) never send one.

@@ -78,17 +78,46 @@ function configuredOriginHostnames(): string[] | undefined {
   return [...new Set([...configured, ...localhostAllowedOrigins()])];
 }
 
+/**
+ * Origins on the local network: mDNS-style `.local` / `.home` / `.lan` names, loopback
+ * beyond 127.0.0.1, and RFC 1918 address space. `localhost` and `[::1]` are already
+ * covered by the localhost allowlist checked before this.
+ */
+function isPrivateNetworkOrigin(originHeader: string): boolean {
+  let host: string;
+  try {
+    host = new URL(originHeader).hostname.toLowerCase();
+  } catch {
+    return false;
+  }
+
+  return (
+    host.endsWith(".local") ||
+    host.endsWith(".home") ||
+    host.endsWith(".lan") ||
+    /^127\.\d+\.\d+\.\d+$/.test(host) ||
+    /^10\.\d+\.\d+\.\d+$/.test(host) ||
+    /^192\.168\.\d+\.\d+$/.test(host) ||
+    /^172\.(1[6-9]|2\d|3[01])\.\d+\.\d+$/.test(host)
+  );
+}
+
 function isAllowedOrigin(originHeader: string | undefined): boolean {
   if (!originHeader) return true; // Non-browser clients (e.g. Home Assistant httpx client)
 
   if (process.env.ALLOWED_ORIGINS === "*") return true;
 
+  // An explicit allowlist is exactly that: it replaces the LAN default below.
   const configured = configuredOriginHostnames();
   if (configured) {
     return validateOriginHeader(originHeader, configured).ok;
   }
 
-  return validateOriginHeader(originHeader, localhostAllowedOrigins()).ok;
+  if (validateOriginHeader(originHeader, localhostAllowedOrigins()).ok) {
+    return true;
+  }
+
+  return isPrivateNetworkOrigin(originHeader);
 }
 
 app.use((req, res, next) => {
