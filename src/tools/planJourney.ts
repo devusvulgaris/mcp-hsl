@@ -22,7 +22,7 @@ const inputSchema = z.object({
       "Optional filter of allowed transit modes (BUS, TRAM, RAIL, SUBWAY, FERRY). Omit to allow any.",
     ),
   departureTime: z
-    .iso.date()
+    .iso.datetime({ offset: true })
     .optional()
     .describe(
       "ISO 8601 timestamp WITH offset, e.g. '2026-08-07T15:00:00+03:00' or '...Z'. Defaults to now.",
